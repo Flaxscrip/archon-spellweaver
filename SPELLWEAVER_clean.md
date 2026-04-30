@@ -20,7 +20,7 @@ Every item you register gets a vertex on $\\mathbb{Z}/(2^6)\\mathbb{Z}$: the six
 | $b_5$ | **Computation** | Recursion, self-reference, oracle |
 | $b_6$ | **Value** | Transfer, proxy, capability issuance |
 
-Your DID sits at vertex **1** (000001): pure Protection. A VC proving your schema sits at **7** (000111): Protection + Delegation + Memory. The lattice tells you what a thing *does* by where it *sits*.
+When you register a DID or VC, it is assigned a vertex based on its active capabilities. A simple identifier might sit at vertex **1** (000001): pure Protection. A full sovereign identity — like `flaxscrip` — carries all six dimensions and sits at vertex **63** (111111). A VC proving a schema might sit at **7** (000111): Protection + Delegation + Memory. The lattice tells you what a thing *does* by where it *sits*.
 
 ---
 
