@@ -16,6 +16,7 @@ export function VCForm({ onSubmit, selectedVertex, availableDIDs }: VCFormProps)
   const [issuerDid, setIssuerDid] = useState('');
   const [subjectDid, setSubjectDid] = useState('');
   const [notes, setNotes] = useState('');
+  const [poeticOverlay, setPoeticOverlay] = useState('');
   const [tags, setTags] = useState('');
 
   const vId = parseInt(vertexId, 10) || 0;
@@ -41,6 +42,7 @@ export function VCForm({ onSubmit, selectedVertex, availableDIDs }: VCFormProps)
       issuerDid: issuerDid.trim() || undefined,
       subjectDid: subjectDid.trim() || undefined,
       notes: notes.trim() || undefined,
+      poeticOverlay: poeticOverlay.trim() || undefined,
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
     };
 
@@ -51,6 +53,7 @@ export function VCForm({ onSubmit, selectedVertex, availableDIDs }: VCFormProps)
     setIssuerDid('');
     setSubjectDid('');
     setNotes('');
+    setPoeticOverlay('');
     setTags('');
   };
 
@@ -186,6 +189,18 @@ export function VCForm({ onSubmit, selectedVertex, availableDIDs }: VCFormProps)
           placeholder="Decomposition details, selective disclosure fields..."
           className="w-full h-20 resize-none"
         />
+      </div>
+
+      {/* Poetic Overlay */}
+      <div>
+        <label className="block text-xs font-semibold text-text-dim mb-1">Poetic Overlay / Lyric</label>
+        <textarea
+          value={poeticOverlay}
+          onChange={e => setPoeticOverlay(e.target.value)}
+          placeholder="The oracle's verse. What the lattice whispers about this credential..."
+          className="w-full h-24 resize-none"
+        />
+        <p className="text-[9px] text-text-dim/50 mt-0.5">Appears in the Chronicle as the poetic layer.</p>
       </div>
 
       {/* Tags */}

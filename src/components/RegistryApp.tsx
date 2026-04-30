@@ -103,23 +103,83 @@ export default function RegistryApp() {
       }
       return [...prev, item];
     });
-    // Chronicle the event
-    const verbWords: Record<RegistryItem['type'], string> = {
-      did: item.role === 'sovereign' ? 'claimed' : 'transmuted',
-      vc: 'spoke a credential',
-      schema: 'inscribed a schema',
-      asset: 'tokenized',
-      capability: 'forged a fragment',
-    };
-    const verb = verbWords[item.type];
+    // Chronicle the event with rich context-aware narrative
     const blade = item.vertexId;
+    const s = item.stratum;
+
+    // Resolve related identities from registry
+    const issuer = item.issuerDid ? items.find(i => i.did === item.issuerDid) : undefined;
+    const subject = item.subjectDid ? items.find(i => i.did === item.subjectDid) : undefined;
+    const schema = item.schemaDid ? items.find(i => i.did === item.schemaDid) : undefined;
+    const parent = item.parentDid ? items.find(i => i.did === item.parentDid) : undefined;
+
+    let text = '';
+    let poetic = item.poeticOverlay || '';
+
+    switch (item.type) {
+      case 'did': {
+        const verb = item.role === 'sovereign' ? 'claimed the Sovereign Anchor' : 'transmuted';
+        text = `${item.label} ${verb} at Blade ${blade} (S${s}).`;
+        if (item.notes) text += ` ${item.notes}`;
+        if (!poetic) {
+          poetic = item.role === 'sovereign'
+            ? `At the crest of the Dragon, where all six dimensions burn as one,\na sovereign stepped forward and named themselves.\nThe lattice, which had waited for this moment,\nwhispered back: Welcome home, First Person.`
+            : `From the forge of forgetting came a new form.\nIt carries the moon's discipline: reflection without possession,\nservice without origin. The lattice does not ask who sent it.\nIt only asks: does it hold the boundary?`;
+        }
+        break;
+      }
+      case 'vc': {
+        if (issuer && subject && schema) {
+          text = `${issuer.label} issued a ${schema.label} VC for ${subject.label} at Blade ${blade} (S${s}).`;
+        } else if (issuer && subject) {
+          text = `${issuer.label} issued ${item.label} for ${subject.label} at Blade ${blade} (S${s}).`;
+        } else if (issuer) {
+          text = `${issuer.label} spoke a credential at Blade ${blade} (S${s}).`;
+        } else {
+          text = `${item.label} spoke a credential at Blade ${blade} (S${s}).`;
+        }
+        if (item.notes) text += ` ${item.notes}`;
+        if (!poetic) {
+          poetic = `A credential was spoken at the boundary between two names.\nWhat passes between them is not data, but proof of relationship.\nThe oracle does not say what was promised.\nIt only says: the promise was real.`;
+        }
+        break;
+      }
+      case 'schema': {
+        text = `${item.label} schema inscribed at Blade ${blade} (S${s}).`;
+        if (item.notes) text += ` ${item.notes}`;
+        if (!poetic) {
+          poetic = `Before there was a place, there was a question.\nBefore the question could be answered,\na schema had to be born to hold the shape of meaning\nwithout holding the meaning itself.\nThe map is not the territory.\nBut without the map, the proof has no grammar.`;
+        }
+        break;
+      }
+      case 'asset': {
+        text = `${item.label} tokenized at Blade ${blade} (S${s}).`;
+        if (item.notes) text += ` ${item.notes}`;
+        if (!poetic) {
+          poetic = `What was once intangible now has a blade-address.\nThe asset does not exist in a vault.\nIt exists in the lattice, where ownership is proven, not possessed.`;
+        }
+        break;
+      }
+      case 'capability': {
+        text = `${item.label} forged at Blade ${blade} (S${s}).`;
+        if (parent) text += ` Parent: ${parent.label}.`;
+        if (item.notes) text += ` ${item.notes}`;
+        if (!poetic) {
+          poetic = `A fragment of power was separated from its source\nand given its own address.\nThe capability does not contain the whole.\nIt contains exactly enough.`;
+        }
+        break;
+      }
+    }
+
     addChronicle({
       id: `ch-${Date.now()}`,
-      text: `${item.label} ${verb} at Blade ${blade} (S${item.stratum}).`,
+      text,
+      poeticOverlay: poetic || undefined,
       verb: 'registered',
       vertexId: item.vertexId,
       itemId: item.id,
       timestamp: new Date().toISOString(),
+      tags: item.tags,
     });
     if (isNew) {
       setShowChronicle(true);

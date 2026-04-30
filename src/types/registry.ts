@@ -31,6 +31,7 @@ export interface ChronicleEntry {
   itemId: string | null;   // The affected item, if any
   timestamp: string;     // ISO timestamp
   metadata?: Record<string, unknown>;
+  tags?: string[];
 }
 
 export interface RegistryItem {
@@ -41,7 +42,8 @@ export interface RegistryItem {
   vertexId: number;     // 0-63 lattice position
   stratum: number;      // Cached Hamming weight
   createdAt: string;    // ISO timestamp
-  notes?: string;       // Optional description
+  notes?: string;       // Optional technical description
+  poeticOverlay?: string; // Optional lyric / poetic description for chronicle
   // For VCs
   schemaDid?: string;   // Schema DID reference
   issuerDid?: string;   // Issuer DID reference
