@@ -397,12 +397,12 @@ function transmuteToSpellweb(
 
 function buildDimensions(v: number): Record<string, number> {
   const d = {
-    d1Hide: (v & 1) ? 1.0 : 0.0,
-    d2Commit: (v & 2) ? 1.0 : 0.0,
-    d3Prove: (v & 4) ? 1.0 : 0.0,
-    d4Connect: (v & 8) ? 1.0 : 0.0,
-    d5Reflect: (v & 16) ? 1.0 : 0.0,
-    d6Delegate: (v & 32) ? 1.0 : 0.0,
+    d1Protection: (v & 1) ? 1.0 : 0.0,
+    d2Delegation: (v & 2) ? 1.0 : 0.0,
+    d3Memory: (v & 4) ? 1.0 : 0.0,
+    d4Connection: (v & 8) ? 1.0 : 0.0,
+    d5Computation: (v & 16) ? 1.0 : 0.0,
+    d6Value: (v & 32) ? 1.0 : 0.0,
   };
   return d;
 }
@@ -436,7 +436,7 @@ function generateTsModule(
     if (n.emoji) fields.push(`    emoji: "${n.emoji}",`);
     if (n.dimensions) {
       const d = n.dimensions;
-      fields.push(`    dimensions: { d1Hide: ${d.d1Hide}, d2Commit: ${d.d2Commit}, d3Prove: ${d.d3Prove}, d4Connect: ${d.d4Connect}, d5Reflect: ${d.d5Reflect}, d6Delegate: ${d.d6Delegate} },`);
+      fields.push(`    dimensions: { d1Protection: ${d.d1Protection}, d2Delegation: ${d.d2Delegation}, d3Memory: ${d.d3Memory}, d4Connection: ${d.d4Connection}, d5Computation: ${d.d5Computation}, d6Value: ${d.d6Value} },`);
     }
     if (n.tier) fields.push(`    tier: ${n.tier},`);
     return `  {\n${fields.join('\n')}\n  }`;
