@@ -50,7 +50,7 @@ export interface RegistryItem {
   subjectDid?: string;  // VC subject DID reference
   // For assets: controller DID resolved from DID Document (agent with signing keys)
   controllerDid?: string; // **RESOLVED** — do NOT set manually
-  role?: 'sovereign' | 'transmuted' | 'schema' | 'issuer' | 'verifier';
+  role?: 'sovereign' | 'transmuted' | 'schema' | 'issuer' | 'verifier' | 'chronicle';
   // For capabilities: parent DID this capability belongs to
   parentDid?: string;   // Anchor DID this capability decomposes from
   // Metadata

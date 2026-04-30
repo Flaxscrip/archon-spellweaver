@@ -8,6 +8,7 @@ import { VCForm } from './VCForm';
 import { NodeList } from './NodeList';
 import { ChroniclePanel } from './ChroniclePanel';
 import { OraclePanel } from './OraclePanel';
+import { PublishPanel } from './PublishPanel';
 import { resolveDID, getController } from '../lib/didResolver';
 
 import {
@@ -77,6 +78,7 @@ export default function RegistryApp() {
   const [showOracle, setShowOracle] = useState(false);
   const [formType, setFormType] = useState<'did' | 'vc'>('did');
   const [hoveredChronicleVertices, setHoveredChronicleVertices] = useState<Set<number>>(new Set());
+  const [showPublish, setShowPublish] = useState(false);
 
   // Import file input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -532,6 +534,13 @@ export default function RegistryApp() {
           </button>
 
           <button
+            onClick={() => { setShowPublish(true); setShowAddPanel(false); setShowChronicle(false); setShowOracle(false); }}
+            className={`btn text-xs ${showPublish ? 'btn-accent' : 'btn-secondary'}`}
+          >
+            📤 Publish
+          </button>
+
+          <button
             onClick={() => { setShowAddPanel(true); setShowChronicle(false); setShowOracle(false); setFormType('did'); }}
             className="btn btn-primary text-xs"
           >
@@ -539,6 +548,15 @@ export default function RegistryApp() {
           </button>
         </div>
       </header>
+
+      {/* Publish to Spellweb panel */}
+      {showPublish && (
+        <PublishPanel
+          items={items}
+          chronicle={chronicle}
+          onClose={() => setShowPublish(false)}
+        />
+      )}
 
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
