@@ -246,6 +246,15 @@ export default function RegistryApp() {
         }
       }
 
+      // Controller relationship (schemas, assets)
+      if ('controllerDid' in item && item.controllerDid) {
+        const controller = items.find(i => i.did === (item as RegistryItem).controllerDid);
+        if (controller) {
+          verts.add(controller.vertexId);
+          edgeList.push({ from: item.vertexId, to: controller.vertexId });
+        }
+      }
+
       return { vertices: verts, edges: edgeList };
     }
 
@@ -289,6 +298,13 @@ export default function RegistryApp() {
             edgeList.push({ from: item.vertexId, to: child.vertexId });
           }
         });
+        // Controller edges
+        if (item.controllerDid) {
+          const controller = items.find(i => i.did === item.controllerDid);
+          if (controller && hoveredChronicleVertices.has(controller.vertexId)) {
+            edgeList.push({ from: item.vertexId, to: controller.vertexId });
+          }
+        }
       });
 
       return { vertices: verts, edges: edgeList };

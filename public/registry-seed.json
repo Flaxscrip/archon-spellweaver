@@ -22,7 +22,7 @@
       "vertexId": 12,
       "stratum": 2,
       "role": "schema",
-      "controllerDid": "did:cid:bagaaiera7vsjlu6oiluzd4enop5j7sfzjbwp2ujudt6uunkz6hhd4lgfe4sa",
+      "controllerDid": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq",
       "createdAt": "2026-04-30T18:46:00Z",
       "notes": "LocationProof schema for GPS coordinates with accuracy and source attestation. Controlled by flaxscrip."
     },
@@ -96,7 +96,8 @@
       "stratum": 2,
       "role": "chronicle",
       "createdAt": "2026-04-28T19:00:00Z",
-      "notes": "Part 1 of the Sovereign Anchor trilogy. Tokenized Archon asset."
+      "notes": "Part 1 of the Sovereign Anchor trilogy. Tokenized Archon asset.",
+      "controllerDid": "did:cid:bagaaiera7vsjlu6oiluzd4enop5j7sfzjbwp2ujudt6uunkz6hhd4lgfe4sa"
     },
     {
       "id": "asset-boundary-blade",
@@ -107,7 +108,8 @@
       "stratum": 2,
       "role": "chronicle",
       "createdAt": "2026-04-28T19:00:00Z",
-      "notes": "Part 2 of the Sovereign Anchor trilogy. Tokenized Archon asset."
+      "notes": "Part 2 of the Sovereign Anchor trilogy. Tokenized Archon asset.",
+      "controllerDid": "did:cid:bagaaiera7vsjlu6oiluzd4enop5j7sfzjbwp2ujudt6uunkz6hhd4lgfe4sa"
     },
     {
       "id": "cap-mnemosyne",
