@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #06060e;
+  --bg-panel: #0a0a1a;
+  --bg-card: #111122;
+  --border: #1a1a3a;
+  --text-primary: #e0e0e0;
+  --text-dim: #888888;
+  --text-bright: #ffffff;
+  --accent: #5599ff;
+  --accent-glow: rgba(85, 153, 255, 0.3);
+  --danger: #ff4444;
+  --success: #55ff55;
+  --warning: #ffdd55;
+  --cyan: #00ffff;
+  --magenta: #ff00ff;
+  --gold: #ffd700;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-panel);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a5a;
+}
+
+/* Lattice vertex animations */
+.vertex-circle {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.vertex-circle:hover {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.vertex-occupied {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Form inputs */
+input, textarea, select {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+input::placeholder, textarea::placeholder {
+  color: #444466;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+}
+.btn-primary:hover {
+  background: #77aaff;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.btn-secondary {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-danger {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.btn-danger:hover {
+  background: rgba(255, 68, 68, 0.25);
+}
+
+/* Panel glass effect */
+.glass-panel {
+  background: rgba(10, 10, 26, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}

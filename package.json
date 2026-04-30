@@ -1,0 +1,31 @@
+{
+  "name": "spellweb-registry",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Blank spellweb registry for Transmuted DIDs and Decomposed VCs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "export:spellweb": "node scripts/export-to-spellweb.mjs"
+  },
+  "dependencies": {
+    "d3": "^7.8.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.4.2",
+    "vite": "^6.4.1"
+  },
+  "author": "0xagentprivacy",
+  "license": "MIT"
+}
