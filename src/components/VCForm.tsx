@@ -123,8 +123,8 @@ export function VCForm({ onSubmit, selectedVertex, availableDIDs }: VCFormProps)
           className="w-full mb-1"
         >
           <option value="">-- Select registered schema --</option>
-          {availableDIDs.filter(d => d.role === 'schema').map(d => (
-            <option key={d.id} value={d.did}>{d.label} ({d.did})</option>
+          {availableDIDs.filter(d => d.type === 'schema').map(d => (
+            <option key={d.id} value={d.did}>{d.label} ({shortDid(d.did)})</option>
           ))}
         </select>
         <input
@@ -145,8 +145,8 @@ export function VCForm({ onSubmit, selectedVertex, availableDIDs }: VCFormProps)
           className="w-full mb-1"
         >
           <option value="">-- Select registered issuer --</option>
-          {availableDIDs.filter(d => d.role === 'issuer' || d.role === 'sovereign').map(d => (
-            <option key={d.id} value={d.did}>{d.label} ({d.did})</option>
+          {availableDIDs.filter(d => d.type === 'did').map(d => (
+            <option key={d.id} value={d.did}>{d.label} {roleBadge(d.role)} ({shortDid(d.did)})</option>
           ))}
         </select>
         <input
@@ -167,8 +167,8 @@ export function VCForm({ onSubmit, selectedVertex, availableDIDs }: VCFormProps)
           className="w-full mb-1"
         >
           <option value="">-- Select registered subject --</option>
-          {availableDIDs.filter(d => d.role === 'sovereign' || d.role === 'transmuted').map(d => (
-            <option key={d.id} value={d.did}>{d.label} ({d.did})</option>
+          {availableDIDs.filter(d => d.type === 'did').map(d => (
+            <option key={d.id} value={d.did}>{d.label} {roleBadge(d.role)} ({shortDid(d.did)})</option>
           ))}
         </select>
         <input
@@ -220,4 +220,20 @@ export function VCForm({ onSubmit, selectedVertex, availableDIDs }: VCFormProps)
       </button>
     </form>
   );
+}
+
+function shortDid(did: string): string {
+  if (did.length <= 24) return did;
+  return did.slice(0, 16) + '...' + did.slice(-6);
+}
+
+function roleBadge(role?: string): string {
+  const map: Record<string, string> = {
+    sovereign: '👑',
+    transmuted: '⚡',
+    issuer: '🏛️',
+    verifier: '🔍',
+    schema: '📋',
+  };
+  return map[role || ''] || '◦';
 }

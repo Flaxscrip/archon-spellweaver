@@ -627,7 +627,7 @@ export default function RegistryApp() {
                 <VCForm
                   onSubmit={handleAddItem}
                   selectedVertex={selectedVertex}
-                  availableDIDs={dids}
+                  availableDIDs={items}
                 />
               )}
             </div>
