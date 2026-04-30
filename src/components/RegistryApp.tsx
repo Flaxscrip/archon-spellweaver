@@ -94,6 +94,14 @@ export default function RegistryApp() {
 
   const handleAddItem = useCallback((item: RegistryItem) => {
     const isNew = !items.find(i => i.id === item.id);
+    // Guardrail: reject duplicate DIDs (except self-updates)
+    if (isNew) {
+      const dup = items.find(i => i.did === item.did);
+      if (dup) {
+        alert(`\u26a0\ufe0f Duplicate DID detected.\n\n"${item.did}" is already registered as "${dup.label}" at Blade ${dup.vertexId}.\n\nEach identity needs a unique DID. Issue a new one from your wallet.`);
+        return;
+      }
+    }
     setItems(prev => {
       const existing = prev.findIndex(i => i.id === item.id);
       if (existing >= 0) {
@@ -622,6 +630,7 @@ export default function RegistryApp() {
                 <DIDForm
                   onSubmit={handleAddItem}
                   selectedVertex={selectedVertex}
+                  existingItems={items}
                 />
               ) : (
                 <VCForm

@@ -5,9 +5,10 @@ import { getStratum, toBinary, getDimensionNames, getStratumColor, getDimensionE
 interface DIDFormProps {
   onSubmit: (item: RegistryItem) => void;
   selectedVertex: number | null;
+  existingItems?: RegistryItem[];
 }
 
-export function DIDForm({ onSubmit, selectedVertex }: DIDFormProps) {
+export function DIDForm({ onSubmit, selectedVertex, existingItems = [] }: DIDFormProps) {
   const [did, setDid] = useState('');
   const [label, setLabel] = useState('');
   const [role, setRole] = useState<RegistryItem['role']>('transmuted');
@@ -22,6 +23,8 @@ export function DIDForm({ onSubmit, selectedVertex }: DIDFormProps) {
   const binary = toBinary(clamped);
   const dimNames = getDimensionNames(clamped);
   const color = getStratumColor(stratum);
+
+  const dup = did.trim() ? existingItems.find(i => i.did === did.trim()) : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,9 +91,14 @@ export function DIDForm({ onSubmit, selectedVertex }: DIDFormProps) {
           value={did}
           onChange={e => setDid(e.target.value)}
           placeholder="did:web:example.com"
-          className="w-full"
+          className={`w-full ${dup ? 'border-danger' : ''}`}
           required
         />
+        {dup && (
+          <p className="text-[10px] text-danger mt-1">
+            ⚠️ Already registered as <strong>{dup.label}</strong> at Blade {dup.vertexId}. Use a unique DID.
+          </p>
+        )}
       </div>
 
       {/* Label */}
