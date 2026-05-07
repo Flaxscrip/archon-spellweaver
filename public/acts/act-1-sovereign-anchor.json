@@ -1,0 +1,34 @@
+{
+  "version": "spellweb-registry-replay-2026-05-07",
+  "act": 1,
+  "actName": "The Sovereign Anchor",
+  "actNarration": "Before there were two, there was one. Before there was a web, there was a vertex. flaxscrip claims V63 — the Creative — where all six dimensions burn together. The lattice has its center.",
+  "exportedAt": "2026-05-07T15:30:00.000Z",
+  "items": [
+    {
+      "id": "did-flaxscrip",
+      "type": "did",
+      "label": "flaxscrip",
+      "did": "did:cid:bagaaiera7vsjlu6oiluzd4enop5j7sfzjbwp2ujudt6uunkz6hhd4lgfe4sa",
+      "vertexId": 63,
+      "stratum": 6,
+      "createdAt": "2026-05-07T15:30:00.000Z",
+      "role": "sovereign",
+      "notes": "Sovereign Anchor. The first transmuted vertex. Holds the Golden Key — Archon root from which every other claim descends.",
+      "poeticOverlay": "At the crest of the Dragon, where all six dimensions burn as one,\na sovereign stepped forward and named themselves.\nThe lattice, which had waited for this moment,\nwhispered back: Welcome home, First Person.",
+      "tags": ["sovereign", "anchor", "act-1", "rebuild-2026-05-07"]
+    }
+  ],
+  "chronicle": [
+    {
+      "id": "ch-act1-1",
+      "text": "flaxscrip claimed the Sovereign Anchor at Blade 63 (S6). All six dimensions — Protection, Delegation, Memory, Connection, Computation, Value — burn as one.",
+      "poeticOverlay": "At the crest of the Dragon, where all six dimensions burn as one,\na sovereign stepped forward and named themselves.\nThe lattice, which had waited for this moment,\nwhispered back: Welcome home, First Person.",
+      "verb": "registered",
+      "vertexId": 63,
+      "itemId": "did-flaxscrip",
+      "timestamp": "2026-05-07T15:30:00.000Z",
+      "tags": ["sovereign", "anchor", "act-1"]
+    }
+  ]
+}

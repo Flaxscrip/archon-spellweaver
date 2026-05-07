@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { LATTICE_VERTICES, STRATUM_COUNTS } from '../data/lattice';
 import { getStratumColor, getVertexLabel, getDimensionEmoji, getVertexShortLabel, isCanonicalName } from '../types/registry';
 import type { RegistryItem } from '../types/registry';
+import type { HighlightEdge } from '../lib/highlight';
 
 interface LatticeViewProps {
   vertexCounts: Map<number, number>;
@@ -9,7 +10,8 @@ interface LatticeViewProps {
   hoveredVertices: Set<number>;
   onSelectVertex: (id: number | null) => void;
   items: RegistryItem[];
-  highlightedConnections: { vertices: Set<number>; edges: { from: number; to: number }[] };
+  // edges carry typed relation metadata for future per-relation styling
+  highlightedConnections: { vertices: Set<number>; edges: HighlightEdge[] };
   selectedItemId: string | null;
   onSelectItem: (id: string | null) => void;
 }
@@ -319,38 +321,30 @@ export function LatticeView({ vertexCounts, selectedVertex, hoveredVertices, onS
           );
         })}
 
-        {/* Legend */}
-        <g transform={`translate(${SVG_WIDTH - 190}, 60)`}>
-          <rect
-            x={0}
-            y={0}
-            width={170}
-            height={200}
-            fill="#111122"
-            stroke="#2a2a5a"
-            strokeWidth={1}
-            rx={5}
-          />
-          <text x={85} y={20} textAnchor="middle" fill="#ffffff" fontFamily="monospace" fontSize={11} fontWeight="bold">
-            Dimensions
-          </text>
-          {[
-            { name: 'Protection', bit: 1, color: '#ff5555', emoji: '🛡️' },
-            { name: 'Delegation', bit: 2, color: '#ff9955', emoji: '🤝' },
-            { name: 'Memory', bit: 4, color: '#ffdd55', emoji: '📜' },
-            { name: 'Connection', bit: 8, color: '#55ff55', emoji: '🔗' },
-            { name: 'Computation', bit: 16, color: '#5599ff', emoji: '⚡' },
-            { name: 'Value', bit: 32, color: '#aa55ff', emoji: '💎' },
-          ].map((d, i) => (
-            <g key={d.name} transform={`translate(10, ${35 + i * 26})`}>
-              <circle cx={8} cy={0} r={6} fill={d.color + '30'} stroke={d.color} strokeWidth={1.5} />
-              <text x={22} y={4} fill={d.color} fontFamily="monospace" fontSize={10}>
-                {d.emoji} {d.name} = {d.bit}
-              </text>
-            </g>
-          ))}
-        </g>
       </svg>
+
+      {/* Dimensions legend — HTML overlay so it never obstructs vertex positions */}
+      <div className="absolute bottom-4 right-4 bg-[#111122] border border-[#2a2a5a] rounded-md px-3 py-2.5 pointer-events-none">
+        <div className="text-[11px] font-mono font-bold text-white text-center mb-2">Dimensions</div>
+        {[
+          { name: 'Protection',  bit: 1,  color: '#ff5555', emoji: '🛡️' },
+          { name: 'Delegation',  bit: 2,  color: '#ff9955', emoji: '🤝' },
+          { name: 'Memory',      bit: 4,  color: '#ffdd55', emoji: '📜' },
+          { name: 'Connection',  bit: 8,  color: '#55ff55', emoji: '🔗' },
+          { name: 'Computation', bit: 16, color: '#5599ff', emoji: '⚡' },
+          { name: 'Value',       bit: 32, color: '#aa55ff', emoji: '💎' },
+        ].map(d => (
+          <div key={d.name} className="flex items-center gap-2 py-0.5">
+            <div
+              className="w-3 h-3 rounded-full flex-shrink-0 border"
+              style={{ background: d.color + '30', borderColor: d.color, borderWidth: 1.5 }}
+            />
+            <span className="text-[10px] font-mono" style={{ color: d.color }}>
+              {d.emoji} {d.name} = {d.bit}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

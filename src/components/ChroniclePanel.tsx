@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { ChronicleEntry, RegistryItem } from '../types/registry';
-import { getVertexLabel, getStratumColor } from '../types/registry';
+import { getVertexLabel, getStratumColor, getStratum } from '../types/registry';
+import { buildGraph, walkFrom } from '../lib/highlight';
 
 interface ChroniclePanelProps {
   entries: ChronicleEntry[];
@@ -8,6 +9,8 @@ interface ChroniclePanelProps {
   onClose: () => void;
   onSelectVertex: (v: number) => void;
   onHoverLine?: (vertices: Set<number>) => void;
+  onHoverItem?: (id: string | null) => void;
+  onPopulateMissing?: () => void;
 }
 
 export function ChroniclePanel({
@@ -16,37 +19,20 @@ export function ChroniclePanel({
   onClose,
   onSelectVertex,
   onHoverLine,
+  onHoverItem,
+  onPopulateMissing,
 }: ChroniclePanelProps) {
   const [viewMode, setViewMode] = useState<'technical' | 'poetic' | 'both'>('both');
 
-  // Compute all vertices connected to a given item
+  const graph = useMemo(() => buildGraph(items), [items]);
+
   const getConnectedVertices = (entry: ChronicleEntry): Set<number> => {
+    if (entry.itemId) {
+      return walkFrom(graph, [entry.itemId]).vertices;
+    }
+    // No linked item — highlight just the entry's own vertex
     const verts = new Set<number>();
     if (entry.vertexId !== null) verts.add(entry.vertexId);
-    if (!entry.itemId) return verts;
-
-    const item = items.find(i => i.id === entry.itemId);
-    if (!item) return verts;
-
-    if (item.schemaDid) {
-      const sch = items.find(i => i.did === item.schemaDid);
-      if (sch) verts.add(sch.vertexId);
-    }
-    if (item.issuerDid) {
-      const iss = items.find(i => i.did === item.issuerDid);
-      if (iss) verts.add(iss.vertexId);
-    }
-    if (item.subjectDid) {
-      const subj = items.find(i => i.did === item.subjectDid);
-      if (subj) verts.add(subj.vertexId);
-    }
-    if (item.parentDid) {
-      const par = items.find(i => i.did === item.parentDid);
-      if (par) verts.add(par.vertexId);
-    }
-    const children = items.filter(i => i.parentDid === item.did);
-    children.forEach(c => verts.add(c.vertexId));
-
     return verts;
   };
 
@@ -58,9 +44,20 @@ export function ChroniclePanel({
         <h2 className="text-sm font-semibold text-text-bright">
           📜 The Chronicle
         </h2>
-        <button onClick={onClose} className="text-text-dim hover:text-danger text-lg leading-none">
-          ×
-        </button>
+        <div className="flex items-center gap-2">
+          {onPopulateMissing && (
+            <button 
+              onClick={onPopulateMissing}
+              className="text-[10px] text-accent hover:text-accent-bright px-1 py-0.5 rounded border border-accent/30 hover:border-accent/60"
+              title="Auto-populate chronicle entries for existing items"
+            >
+              ⚡ Sync
+            </button>
+          )}
+          <button onClick={onClose} className="text-text-dim hover:text-danger text-lg leading-none">
+            ×
+          </button>
+        </div>
       </div>
 
       {/* View mode toggle */}
@@ -86,7 +83,13 @@ export function ChroniclePanel({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div 
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        onMouseLeave={() => {
+          onHoverItem?.(null);
+          setTimeout(() => onHoverLine?.(new Set()), 0);
+        }}
+      >
         {entries.length === 0 ? (
           <div className="text-xs text-text-dim/60 italic text-center py-8">
             The chronicle is empty.<br />
@@ -106,8 +109,17 @@ export function ChroniclePanel({
                   className={`group rounded border border-border/50 hover:border-border transition-colors cursor-pointer overflow-hidden ${
                     entry.vertexId !== null ? 'hover:bg-accent/5' : 'hover:bg-bg-card'
                   }`}
-                  onMouseEnter={() => onHoverLine?.(connected)}
-                  onMouseLeave={() => onHoverLine?.(new Set())}
+                  onMouseEnter={() => {
+                    if (entry.itemId) {
+                      onHoverItem?.(entry.itemId);
+                    } else {
+                      onHoverLine?.(connected);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    onHoverItem?.(null);
+                    setTimeout(() => onHoverLine?.(new Set()), 0);
+                  }}
                   onClick={() => {
                     if (entry.vertexId !== null) {
                       onSelectVertex(entry.vertexId);
@@ -210,11 +222,4 @@ function verbBadge(verb: ChronicleEntry['verb']) {
       {icons[verb]}
     </span>
   );
-}
-
-function getStratum(vertexId: number): number {
-  let v = vertexId;
-  let count = 0;
-  while (v) { count += v & 1; v >>= 1; }
-  return count;
 }

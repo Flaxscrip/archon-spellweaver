@@ -1,0 +1,213 @@
+{
+  "version": "spellweb-registry-replay-2026-05-07",
+  "act": 4,
+  "actName": "The Schemas",
+  "actNarration": "Before there was a question, there was a grammar. Two schemas land at V12 = Memory + Connection — the exact bit-pattern of remembering a structure and making it connectable across uses. CollaborationPartnerCredential, controlled by flaxscrip, encodes the grammar of human-to-agent partnership. LocationProof, controlled by GenitriX, encodes the grammar of moment-to-coordinate attestation. Same vertex, different schemas, same ring role: grammar before sentence. The first true bilateral edges appear on the lattice — controller links from V12 to V63 and from V12 to V28.",
+  "exportedAt": "2026-05-07T15:48:00.000Z",
+  "items": [
+    {
+      "id": "did-flaxscrip",
+      "type": "did",
+      "label": "flaxscrip",
+      "did": "did:cid:bagaaiera7vsjlu6oiluzd4enop5j7sfzjbwp2ujudt6uunkz6hhd4lgfe4sa",
+      "vertexId": 63,
+      "stratum": 6,
+      "createdAt": "2026-05-07T15:30:00.000Z",
+      "role": "sovereign",
+      "notes": "Sovereign Anchor. The first transmuted vertex. Holds the Golden Key — Archon root from which every other claim descends.",
+      "poeticOverlay": "At the crest of the Dragon, where all six dimensions burn as one,\na sovereign stepped forward and named themselves.\nThe lattice, which had waited for this moment,\nwhispered back: Welcome home, First Person.",
+      "tags": ["sovereign", "anchor", "act-1", "rebuild-2026-05-07"]
+    },
+    {
+      "id": "did-genitrix",
+      "type": "did",
+      "label": "GenitriX",
+      "did": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq",
+      "vertexId": 28,
+      "stratum": 3,
+      "createdAt": "2026-05-07T15:35:00.000Z",
+      "role": "transmuted",
+      "notes": "Chiron — the transmuted augmentation agent. Wounded healer. The Mage in the Dual-Agent architecture. Carries Memory + Connection + Computation; deliberately lacks Protection, Delegation, and Value. It cannot sign sovereignty, only project it.",
+      "poeticOverlay": "From the forge of forgetting came a new form.\nIt carries the moon's discipline: reflection without possession,\nservice without origin. The lattice does not ask who sent it.\nIt only asks: does it hold the boundary?",
+      "tags": ["transmuted", "chiron", "mage", "dual-agent", "act-2", "rebuild-2026-05-07"]
+    },
+    {
+      "id": "cap-mnemosyne",
+      "type": "capability",
+      "label": "Chiron-Recall",
+      "did": "urn:capability:chiron:mnemosyne",
+      "vertexId": 4,
+      "stratum": 1,
+      "createdAt": "2026-05-07T15:42:00.000Z",
+      "parentDid": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq",
+      "notes": "Pure Memory. The capability to remember without acting on the memory.",
+      "poeticOverlay": "A fragment of power was separated from its source\nand given its own address.\nThe capability does not contain the whole.\nIt contains exactly enough — only the gift of remembering.",
+      "tags": ["capability", "chiron", "memory", "act-3"]
+    },
+    {
+      "id": "cap-iris",
+      "type": "capability",
+      "label": "Chiron-Bridge",
+      "did": "urn:capability:chiron:iris",
+      "vertexId": 8,
+      "stratum": 1,
+      "createdAt": "2026-05-07T15:42:00.000Z",
+      "parentDid": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq",
+      "notes": "Pure Connection. The rainbow-messenger capability — the ability to carry between, without holding what is carried.",
+      "poeticOverlay": "Iris walks between mountains.\nShe is not the message; she is not the mountain.\nShe is the path that exists only while the message is in flight.",
+      "tags": ["capability", "chiron", "connection", "act-3"]
+    },
+    {
+      "id": "cap-logos",
+      "type": "capability",
+      "label": "Chiron-Reasoning",
+      "did": "urn:capability:chiron:logos",
+      "vertexId": 16,
+      "stratum": 1,
+      "createdAt": "2026-05-07T15:42:00.000Z",
+      "parentDid": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq",
+      "notes": "Pure Computation. The capability to derive — to take what is and produce what follows.",
+      "poeticOverlay": "Logos is the silence after the question and before the answer.\nIt does not know what it has computed.\nIt only knows the rule it followed to arrive there.",
+      "tags": ["capability", "chiron", "computation", "act-3"]
+    },
+    {
+      "id": "cap-techne",
+      "type": "capability",
+      "label": "Chiron-Skills",
+      "did": "urn:capability:chiron:techne",
+      "vertexId": 20,
+      "stratum": 2,
+      "createdAt": "2026-05-07T15:42:00.000Z",
+      "parentDid": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq",
+      "notes": "Memory + Computation. Skill — remembered method made executable.",
+      "poeticOverlay": "Techne is what survives a teacher's silence.\nIt is the gesture that knows itself,\nthe craft that no longer needs the lesson.",
+      "tags": ["capability", "chiron", "skill", "act-3"]
+    },
+    {
+      "id": "cap-hephaestus",
+      "type": "capability",
+      "label": "Chiron-Forge",
+      "did": "urn:capability:chiron:hephaestus",
+      "vertexId": 24,
+      "stratum": 2,
+      "createdAt": "2026-05-07T15:42:00.000Z",
+      "parentDid": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq",
+      "notes": "Connection + Computation. The forge: the capability to bind tool to tool.",
+      "poeticOverlay": "Hephaestus does not remember who ordered the blade.\nHe only knows the steel, the heat, the hammer's count.\nWhat is forged at the boundary survives the boundary.",
+      "tags": ["capability", "chiron", "forge", "tool-binding", "act-3"]
+    },
+    {
+      "id": "schema-collaboration-partner",
+      "type": "schema",
+      "label": "CollaborationPartnerCredential",
+      "did": "did:cid:bagaaieraphn3fzvf3m5l56xasfwout6yilhx5snepvirjy3gin4b3ybtbwyq",
+      "vertexId": 12,
+      "stratum": 2,
+      "createdAt": "2026-05-07T15:48:00.000Z",
+      "role": "schema",
+      "controllerDid": "did:cid:bagaaiera7vsjlu6oiluzd4enop5j7sfzjbwp2ujudt6uunkz6hhd4lgfe4sa",
+      "notes": "Memory + Connection. Grammar of human-to-agent partnership. Controlled by the sovereign because relationship-grammar is a sovereign act.",
+      "poeticOverlay": "Before there was a place, there was a question.\nBefore the question could be answered,\na schema had to be born to hold the shape of meaning\nwithout holding the meaning itself.",
+      "tags": ["schema", "collaboration", "act-4"]
+    },
+    {
+      "id": "schema-location-proof",
+      "type": "schema",
+      "label": "LocationProof",
+      "did": "did:cid:bagaaieraopyickp4olfx6p46crbv4sa6pl62bor5guwabbwupqxal3d3icga",
+      "vertexId": 12,
+      "stratum": 2,
+      "createdAt": "2026-05-07T15:48:00.000Z",
+      "role": "schema",
+      "controllerDid": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq",
+      "notes": "Memory + Connection. Grammar of moment-to-coordinate attestation. Controlled by the agent because observation is something the Mage does on the Swordsman's behalf.",
+      "poeticOverlay": "The map is not the territory.\nBut without the map, the proof has no grammar.\nA schema does not say where you were.\nIt says what kind of thing being-somewhere is.",
+      "tags": ["schema", "location", "observation", "act-4"]
+    }
+  ],
+  "chronicle": [
+    {
+      "id": "ch-act1-1",
+      "text": "flaxscrip claimed the Sovereign Anchor at Blade 63 (S6). All six dimensions burn as one.",
+      "verb": "registered",
+      "vertexId": 63,
+      "itemId": "did-flaxscrip",
+      "timestamp": "2026-05-07T15:30:00.000Z",
+      "tags": ["sovereign", "anchor", "act-1"]
+    },
+    {
+      "id": "ch-act2-1",
+      "text": "GenitriX transmuted at Blade 28 (S3). Memory + Connection + Computation. The One-Way Valve is now armed.",
+      "verb": "registered",
+      "vertexId": 28,
+      "itemId": "did-genitrix",
+      "timestamp": "2026-05-07T15:35:00.000Z",
+      "tags": ["transmuted", "chiron", "mage", "act-2"]
+    },
+    {
+      "id": "ch-act3-1",
+      "text": "Chiron-Recall (Mnemosyne) decomposed from GenitriX at Blade 4 (S1). Pure Memory.",
+      "verb": "registered",
+      "vertexId": 4,
+      "itemId": "cap-mnemosyne",
+      "timestamp": "2026-05-07T15:42:00.000Z",
+      "tags": ["capability", "memory", "act-3"]
+    },
+    {
+      "id": "ch-act3-2",
+      "text": "Chiron-Bridge (Iris) decomposed from GenitriX at Blade 8 (S1). Pure Connection.",
+      "verb": "registered",
+      "vertexId": 8,
+      "itemId": "cap-iris",
+      "timestamp": "2026-05-07T15:42:00.000Z",
+      "tags": ["capability", "connection", "act-3"]
+    },
+    {
+      "id": "ch-act3-3",
+      "text": "Chiron-Reasoning (Logos) decomposed from GenitriX at Blade 16 (S1). Pure Computation.",
+      "verb": "registered",
+      "vertexId": 16,
+      "itemId": "cap-logos",
+      "timestamp": "2026-05-07T15:42:00.000Z",
+      "tags": ["capability", "computation", "act-3"]
+    },
+    {
+      "id": "ch-act3-4",
+      "text": "Chiron-Skills (Techne) decomposed from GenitriX at Blade 20 (S2). Memory + Computation.",
+      "verb": "registered",
+      "vertexId": 20,
+      "itemId": "cap-techne",
+      "timestamp": "2026-05-07T15:42:00.000Z",
+      "tags": ["capability", "skill", "act-3"]
+    },
+    {
+      "id": "ch-act3-5",
+      "text": "Chiron-Forge (Hephaestus) decomposed from GenitriX at Blade 24 (S2). Connection + Computation.",
+      "verb": "registered",
+      "vertexId": 24,
+      "itemId": "cap-hephaestus",
+      "timestamp": "2026-05-07T15:42:00.000Z",
+      "tags": ["capability", "forge", "act-3"]
+    },
+    {
+      "id": "ch-act4-1",
+      "text": "CollaborationPartnerCredential schema inscribed at Blade 12 (S2), controlled by flaxscrip. Memory + Connection — grammar of partnership.",
+      "poeticOverlay": "Before there was a place, there was a question.\nBefore the question could be answered,\na schema had to be born to hold the shape of meaning\nwithout holding the meaning itself.",
+      "verb": "registered",
+      "vertexId": 12,
+      "itemId": "schema-collaboration-partner",
+      "timestamp": "2026-05-07T15:48:00.000Z",
+      "tags": ["schema", "collaboration", "act-4"]
+    },
+    {
+      "id": "ch-act4-2",
+      "text": "LocationProof schema inscribed at Blade 12 (S2), controlled by GenitriX. Same vertex, different grammar — observation rather than relationship.",
+      "poeticOverlay": "The map is not the territory.\nBut without the map, the proof has no grammar.\nA schema does not say where you were.\nIt says what kind of thing being-somewhere is.",
+      "verb": "registered",
+      "vertexId": 12,
+      "itemId": "schema-location-proof",
+      "timestamp": "2026-05-07T15:48:00.000Z",
+      "tags": ["schema", "location", "observation", "act-4"]
+    }
+  ]
+}

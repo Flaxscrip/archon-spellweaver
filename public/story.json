@@ -1,0 +1,40 @@
+{
+  "title": "The Spellweaver Chronicles",
+  "acts": [
+    {
+      "act": 1,
+      "title": "The Sovereign Anchor",
+      "file": "acts/act-1-sovereign-anchor.json"
+    },
+    {
+      "act": 2,
+      "title": "The Dual Agent",
+      "file": "acts/act-2-dual-agent.json"
+    },
+    {
+      "act": 3,
+      "title": "Act III",
+      "file": "acts/act-3-five-capabilities.json"
+    },
+    {
+      "act": 4,
+      "title": "Act IV",
+      "file": "acts/act-4-schemas.json"
+    },
+    {
+      "act": 5,
+      "title": "Act V",
+      "file": "acts/act-5-web-of-trust.json"
+    },
+    {
+      "act": 6,
+      "title": "Act VI",
+      "file": "acts/act-6-chronicle-stones.json"
+    },
+    {
+      "act": 7,
+      "title": "Act VII",
+      "file": "acts/act-7-boundary-blade-decomposition.json"
+    }
+  ]
+}

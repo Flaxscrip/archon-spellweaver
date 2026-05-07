@@ -10,6 +10,7 @@ import { ChroniclePanel } from './ChroniclePanel';
 import { OraclePanel } from './OraclePanel';
 import { PublishPanel } from './PublishPanel';
 import { resolveDID, getController } from '../lib/didResolver';
+import { buildGraph, walkFrom } from '../lib/highlight';
 
 import {
   getVertexDimensions,
@@ -24,8 +25,45 @@ import {
 
 type Tab = 'lattice' | 'dids' | 'vcs' | 'all';
 
+// Returns the default poetic overlay text for any item type.
+// Used both when registering a new item and when enriching loaded act chronicle entries.
+function generatePoetic(item: RegistryItem): string {
+  if (item.poeticOverlay) return item.poeticOverlay;
+  switch (item.type) {
+    case 'did':
+      return item.role === 'sovereign'
+        ? `At the crest of the Dragon, where all six dimensions burn as one,\na sovereign stepped forward and named themselves.\nThe lattice, which had waited for this moment,\nwhispered back: Welcome home, First Person.`
+        : `From the forge of forgetting came a new form.\nIt carries the moon's discipline: reflection without possession,\nservice without origin. The lattice does not ask who sent it.\nIt only asks: does it hold the boundary?`;
+    case 'vc':
+      return `A credential was spoken at the boundary between two names.\nWhat passes between them is not data, but proof of relationship.\nThe oracle does not say what was promised.\nIt only says: the promise was real.`;
+    case 'schema':
+      return `Before there was a place, there was a question.\nBefore the question could be answered,\na schema had to be born to hold the shape of meaning\nwithout holding the meaning itself.\nThe map is not the territory.\nBut without the map, the proof has no grammar.`;
+    case 'asset':
+      return `What was once intangible now has a blade-address.\nThe asset does not exist in a vault.\nIt exists in the lattice, where ownership is proven, not possessed.`;
+    case 'capability':
+      return `A fragment of power was separated from its source\nand given its own address.\nThe capability does not contain the whole.\nIt contains exactly enough.`;
+    default:
+      return '';
+  }
+}
+
+// Story manifest type
+interface StoryAct {
+  act: number;
+  title: string;
+  file: string;
+}
+interface StoryManifest {
+  title: string;
+  acts: StoryAct[];
+}
+
+// If ?act=N is present, skip localStorage so the act loader starts clean.
+const hasActParam = new URLSearchParams(window.location.search).has('act');
+
 export default function RegistryApp() {
   const [items, setItems] = useState<RegistryItem[]>(() => {
+    if (hasActParam) return [];
     try {
       const saved = localStorage.getItem(REGISTRY_STORAGE_KEY);
       if (saved) {
@@ -38,11 +76,55 @@ export default function RegistryApp() {
 
   const [seedLoaded, setSeedLoaded] = useState(false);
 
-  // Load from seed file if ?seed=1 is present
+  // ?act=N — clear and import the mapped act file from story.json
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const actParam = params.get('act');
+    if (!actParam) return;
+
+    fetch('/story.json')
+      .then(r => r.json())
+      .then((story: StoryManifest) => {
+        const actDef = story.acts.find(a => String(a.act) === actParam);
+        if (!actDef) return null;
+        return fetch(`/${actDef.file}`)
+          .then(r => r.json())
+          .then((data: { items?: RegistryItem[]; chronicle?: ChronicleEntry[] }) => ({ data, actDef }));
+      })
+      .then(result => {
+        if (!result) return;
+        const { data } = result;
+        if (!data.items || !Array.isArray(data.items)) return;
+        localStorage.removeItem(REGISTRY_STORAGE_KEY);
+        localStorage.removeItem(CHRONICLE_STORAGE_KEY);
+
+        const loadedItems: RegistryItem[] = data.items;
+        const itemById = new Map(loadedItems.map(i => [i.id, i]));
+
+        // Enrich chronicle entries that are missing poeticOverlay — act files
+        // are often created without them since they bypass the handleAddItem flow.
+        const enrichedChronicle: ChronicleEntry[] = (
+          data.chronicle && Array.isArray(data.chronicle) ? data.chronicle : []
+        ).map(entry => {
+          if (entry.poeticOverlay) return entry;
+          if (!entry.itemId) return entry;
+          const item = itemById.get(entry.itemId);
+          if (!item) return entry;
+          const poetic = generatePoetic(item);
+          return poetic ? { ...entry, poeticOverlay: poetic } : entry;
+        });
+
+        setItems(loadedItems);
+        setChronicle(enrichedChronicle);
+      })
+      .catch(() => { /* ignore */ });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ?seed=1 — load seed file only when registry is empty (legacy)
   useEffect(() => {
     if (seedLoaded) return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get('seed') === '1' && items.length === 0) {
+    if (!params.get('act') && params.get('seed') === '1' && items.length === 0) {
       fetch('/registry-seed.json')
         .then(r => r.json())
         .then((data: { items: RegistryItem[]; chronicle?: ChronicleEntry[] }) => {
@@ -60,6 +142,7 @@ export default function RegistryApp() {
   }, [items.length, seedLoaded]);
 
   const [chronicle, setChronicle] = useState<ChronicleEntry[]>(() => {
+    if (hasActParam) return [];
     try {
       const saved = localStorage.getItem(CHRONICLE_STORAGE_KEY);
       if (saved) {
@@ -73,6 +156,37 @@ export default function RegistryApp() {
   const [activeTab, setActiveTab] = useState<Tab>('lattice');
   const [selectedVertex, setSelectedVertex] = useState<number | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
+
+  const handleHoverItem = useCallback((id: string | null) => {
+    setHoveredItemId(id);
+    if (id) setHoveredChronicleVertices(new Set());
+  }, []);
+
+  // Clear item selection when vertex is selected (cleanup highlighted paths)
+  const handleSelectVertex = (vertex: number | null) => {
+    setSelectedVertex(vertex);
+    setSelectedItemId(null);
+    setHoveredItemId(null);
+    setHoveredChronicleVertices(new Set());
+  };
+
+  // Clear vertex selection when item is selected (cleanup highlighted paths)
+  const handleSelectItem = (itemId: string | null) => {
+    setSelectedItemId(itemId);
+    setHoveredItemId(null);
+    setHoveredChronicleVertices(new Set());
+    if (itemId) {
+      setSelectedVertex(null);
+    }
+  };
+
+  // Clear hover state when chronicle panel is closed
+  const handleCloseChronicle = () => {
+    setShowChronicle(false);
+    setHoveredItemId(null);
+    setHoveredChronicleVertices(new Set());
+  };
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [showChronicle, setShowChronicle] = useState(false);
   const [showOracle, setShowOracle] = useState(false);
@@ -93,6 +207,62 @@ export default function RegistryApp() {
   const addChronicle = useCallback((entry: ChronicleEntry) => {
     setChronicle(prev => [...prev, entry]);
   }, []);
+
+  // Auto-populate chronicle for items without chronicle entries (for bulk-added data)
+  const populateChronicleForExistingItems = useCallback(() => {
+    const itemsWithChronicle = new Set(chronicle.map(c => c.itemId).filter(Boolean));
+    const itemsNeedingChronicle = items.filter(item => !itemsWithChronicle.has(item.id));
+    
+    if (itemsNeedingChronicle.length > 0) {
+      console.log(`Auto-populating chronicle for ${itemsNeedingChronicle.length} items`);
+      
+      itemsNeedingChronicle.forEach(item => {
+        let text = '';
+        let poetic = '';
+        
+        switch (item.type) {
+          case 'did':
+            const verb = item.role === 'sovereign' ? 'claimed the Sovereign Anchor' : 'transmuted';
+            text = `${item.label} ${verb} at Blade ${item.vertexId} (S${item.stratum}).`;
+            break;
+          case 'vc':
+            const issuer = items.find(i => i.did === item.issuerDid);
+            const subject = items.find(i => i.did === item.subjectDid);
+            if (issuer && subject) {
+              text = `${issuer.label} spoke a credential to ${subject.label} at Blade ${item.vertexId}.`;
+            } else {
+              text = `Credential registered at Blade ${item.vertexId}.`;
+            }
+            break;
+          case 'schema':
+            text = `Schema "${item.label}" registered at Blade ${item.vertexId}.`;
+            break;
+          case 'asset':
+            text = `Chronicle "${item.label}" registered at Blade ${item.vertexId}.`;
+            break;
+          case 'capability':
+            const parent = items.find(i => i.did === item.parentDid);
+            if (parent) {
+              text = `Capability "${item.label}" decomposed from ${parent.label} at Blade ${item.vertexId}.`;
+            } else {
+              text = `Capability "${item.label}" registered at Blade ${item.vertexId}.`;
+            }
+            break;
+        }
+        
+        addChronicle({
+          id: `ch-auto-${item.id}`,
+          text,
+          poeticOverlay: poetic || undefined,
+          verb: 'imported',
+          vertexId: item.vertexId,
+          itemId: item.id,
+          timestamp: item.createdAt,
+          tags: item.tags,
+        });
+      });
+    }
+  }, [items, chronicle, addChronicle]);
 
   const handleAddItem = useCallback((item: RegistryItem) => {
     const isNew = !items.find(i => i.id === item.id);
@@ -124,18 +294,13 @@ export default function RegistryApp() {
     const parent = item.parentDid ? items.find(i => i.did === item.parentDid) : undefined;
 
     let text = '';
-    let poetic = item.poeticOverlay || '';
+    const poetic = generatePoetic(item);
 
     switch (item.type) {
       case 'did': {
         const verb = item.role === 'sovereign' ? 'claimed the Sovereign Anchor' : 'transmuted';
         text = `${item.label} ${verb} at Blade ${blade} (S${s}).`;
         if (item.notes) text += ` ${item.notes}`;
-        if (!poetic) {
-          poetic = item.role === 'sovereign'
-            ? `At the crest of the Dragon, where all six dimensions burn as one,\na sovereign stepped forward and named themselves.\nThe lattice, which had waited for this moment,\nwhispered back: Welcome home, First Person.`
-            : `From the forge of forgetting came a new form.\nIt carries the moon's discipline: reflection without possession,\nservice without origin. The lattice does not ask who sent it.\nIt only asks: does it hold the boundary?`;
-        }
         break;
       }
       case 'vc': {
@@ -149,34 +314,22 @@ export default function RegistryApp() {
           text = `${item.label} spoke a credential at Blade ${blade} (S${s}).`;
         }
         if (item.notes) text += ` ${item.notes}`;
-        if (!poetic) {
-          poetic = `A credential was spoken at the boundary between two names.\nWhat passes between them is not data, but proof of relationship.\nThe oracle does not say what was promised.\nIt only says: the promise was real.`;
-        }
         break;
       }
       case 'schema': {
         text = `${item.label} schema inscribed at Blade ${blade} (S${s}).`;
         if (item.notes) text += ` ${item.notes}`;
-        if (!poetic) {
-          poetic = `Before there was a place, there was a question.\nBefore the question could be answered,\na schema had to be born to hold the shape of meaning\nwithout holding the meaning itself.\nThe map is not the territory.\nBut without the map, the proof has no grammar.`;
-        }
         break;
       }
       case 'asset': {
         text = `${item.label} tokenized at Blade ${blade} (S${s}).`;
         if (item.notes) text += ` ${item.notes}`;
-        if (!poetic) {
-          poetic = `What was once intangible now has a blade-address.\nThe asset does not exist in a vault.\nIt exists in the lattice, where ownership is proven, not possessed.`;
-        }
         break;
       }
       case 'capability': {
         text = `${item.label} forged at Blade ${blade} (S${s}).`;
         if (parent) text += ` Parent: ${parent.label}.`;
         if (item.notes) text += ` ${item.notes}`;
-        if (!poetic) {
-          poetic = `A fragment of power was separated from its source\nand given its own address.\nThe capability does not contain the whole.\nIt contains exactly enough.`;
-        }
         break;
       }
     }
@@ -220,21 +373,15 @@ export default function RegistryApp() {
   const assets = items.filter(i => i.type === 'asset');
   const capabilities = items.filter(i => i.type === 'capability');
 
-  // Build parent-child map for visual linkage
-  const childrenByParent = new Map<string, RegistryItem[]>();
-  items.forEach(item => {
-    if (item.parentDid) {
-      const list = childrenByParent.get(item.parentDid) || [];
-      list.push(item);
-      childrenByParent.set(item.parentDid, list);
-    }
-  });
+  // Graph index rebuilt whenever items change
+  const graph = useMemo(() => buildGraph(items), [items]);
 
-  // Count per vertex
-  const vertexCounts = new Map<number, number>();
-  items.forEach(item => {
-    vertexCounts.set(item.vertexId, (vertexCounts.get(item.vertexId) || 0) + 1);
-  });
+  // Count per vertex (derived from graph index)
+  const vertexCounts = useMemo(() => {
+    const counts = new Map<number, number>();
+    items.forEach(item => counts.set(item.vertexId, (counts.get(item.vertexId) || 0) + 1));
+    return counts;
+  }, [items]);
 
   // ═══════════════════════════════════════════════════════════════
   // Auto-resolve controller DIDs from DID Documents
@@ -265,123 +412,21 @@ export default function RegistryApp() {
   }, [items]);
 
   // ═══════════════════════════════════════════════════════════════
-  // TRACEROUTE: compute highlighted connections for selected item
+  // TRACEROUTE: highlighted connections via shared graph walker
   // ═══════════════════════════════════════════════════════════════
   const highlightedConnections = useMemo(() => {
-    // Priority 1: selected item
     if (selectedItemId) {
-      const item = items.find(i => i.id === selectedItemId);
-      if (!item) return { vertices: new Set<number>(), edges: [] as { from: number; to: number }[] };
-
-      const verts = new Set<number>();
-      const edgeList: { from: number; to: number }[] = [];
-
-      verts.add(item.vertexId);
-
-      if (item.parentDid) {
-        const parent = items.find(i => i.did === item.parentDid);
-        if (parent) {
-          verts.add(parent.vertexId);
-          edgeList.push({ from: item.vertexId, to: parent.vertexId });
-        }
-      }
-
-      if ('schemaDid' in item && item.schemaDid) {
-        const schema = items.find(i => i.did === (item as RegistryItem).schemaDid);
-        if (schema) {
-          verts.add(schema.vertexId);
-          edgeList.push({ from: item.vertexId, to: schema.vertexId });
-        }
-      }
-
-      if ('issuerDid' in item && item.issuerDid) {
-        const issuer = items.find(i => i.did === (item as RegistryItem).issuerDid);
-        if (issuer) {
-          verts.add(issuer.vertexId);
-          edgeList.push({ from: item.vertexId, to: issuer.vertexId });
-        }
-      }
-
-      const children = items.filter(i => i.parentDid === item.did);
-      children.forEach(child => {
-        verts.add(child.vertexId);
-        edgeList.push({ from: item.vertexId, to: child.vertexId });
-      });
-
-      if ('subjectDid' in item && item.subjectDid) {
-        const subject = items.find(i => i.did === (item as RegistryItem).subjectDid);
-        if (subject) {
-          verts.add(subject.vertexId);
-          edgeList.push({ from: item.vertexId, to: subject.vertexId });
-        }
-      }
-
-      // Controller relationship (schemas, assets)
-      if ('controllerDid' in item && item.controllerDid) {
-        const controller = items.find(i => i.did === (item as RegistryItem).controllerDid);
-        if (controller) {
-          verts.add(controller.vertexId);
-          edgeList.push({ from: item.vertexId, to: controller.vertexId });
-        }
-      }
-
-      return { vertices: verts, edges: edgeList };
+      return walkFrom(graph, [selectedItemId]);
     }
-
-    // Priority 2: hovered chronicle vertices — draw edges between related items
+    if (hoveredItemId) {
+      return walkFrom(graph, [hoveredItemId]);
+    }
     if (hoveredChronicleVertices.size > 0) {
-      const verts = new Set<number>(hoveredChronicleVertices);
-      const edgeList: { from: number; to: number }[] = [];
-
-      // Find all items at hovered vertices
-      const hoveredItems = items.filter(i => hoveredChronicleVertices.has(i.vertexId));
-
-      // For each pair of hovered items, draw relationship edges
-      hoveredItems.forEach(item => {
-        if (item.schemaDid) {
-          const schema = items.find(i => i.did === item.schemaDid);
-          if (schema && hoveredChronicleVertices.has(schema.vertexId)) {
-            edgeList.push({ from: item.vertexId, to: schema.vertexId });
-          }
-        }
-        if (item.issuerDid) {
-          const issuer = items.find(i => i.did === item.issuerDid);
-          if (issuer && hoveredChronicleVertices.has(issuer.vertexId)) {
-            edgeList.push({ from: item.vertexId, to: issuer.vertexId });
-          }
-        }
-        if (item.subjectDid) {
-          const subject = items.find(i => i.did === item.subjectDid);
-          if (subject && hoveredChronicleVertices.has(subject.vertexId)) {
-            edgeList.push({ from: item.vertexId, to: subject.vertexId });
-          }
-        }
-        if (item.parentDid) {
-          const parent = items.find(i => i.did === item.parentDid);
-          if (parent && hoveredChronicleVertices.has(parent.vertexId)) {
-            edgeList.push({ from: item.vertexId, to: parent.vertexId });
-          }
-        }
-        const children = items.filter(i => i.parentDid === item.did);
-        children.forEach(child => {
-          if (hoveredChronicleVertices.has(child.vertexId)) {
-            edgeList.push({ from: item.vertexId, to: child.vertexId });
-          }
-        });
-        // Controller edges
-        if (item.controllerDid) {
-          const controller = items.find(i => i.did === item.controllerDid);
-          if (controller && hoveredChronicleVertices.has(controller.vertexId)) {
-            edgeList.push({ from: item.vertexId, to: controller.vertexId });
-          }
-        }
-      });
-
-      return { vertices: verts, edges: edgeList };
+      const seeds = Array.from(hoveredChronicleVertices).map(vertexId => ({ vertexId }));
+      return walkFrom(graph, seeds);
     }
-
-    return { vertices: new Set<number>(), edges: [] as { from: number; to: number }[] };
-  }, [selectedItemId, items, hoveredChronicleVertices]);
+    return { vertices: new Set<number>(), edges: [], items: new Set<string>() };
+  }, [graph, selectedItemId, hoveredItemId, hoveredChronicleVertices]);
 
   return (
     <div className="h-screen w-screen flex flex-col bg-bg-primary text-text-primary overflow-hidden">
@@ -507,8 +552,7 @@ export default function RegistryApp() {
                 });
                 setItems([]);
                 setChronicle([]);
-                setSelectedVertex(null);
-                setSelectedItemId(null);
+                handleSelectVertex(null);
                 localStorage.removeItem(REGISTRY_STORAGE_KEY);
                 localStorage.removeItem(CHRONICLE_STORAGE_KEY);
               }
@@ -520,28 +564,28 @@ export default function RegistryApp() {
           </button>
 
           <button
-            onClick={() => { setShowChronicle(!showChronicle); setShowAddPanel(false); setShowOracle(false); }}
+            onClick={() => { setShowChronicle(!showChronicle); setShowAddPanel(false); setShowOracle(false); if (showChronicle) setHoveredChronicleVertices(new Set()); }}
             className={`btn text-xs ${showChronicle ? 'btn-accent' : 'btn-secondary'}`}
           >
             📜 Chronicle
           </button>
 
           <button
-            onClick={() => { setShowOracle(!showOracle); setShowAddPanel(false); setShowChronicle(false); }}
+            onClick={() => { setShowOracle(!showOracle); setShowAddPanel(false); handleCloseChronicle(); }}
             className={`btn text-xs ${showOracle ? 'btn-accent' : 'btn-secondary'}`}
           >
             🔮 Oracle
           </button>
 
           <button
-            onClick={() => { setShowPublish(true); setShowAddPanel(false); setShowChronicle(false); setShowOracle(false); }}
+            onClick={() => { setShowPublish(true); setShowAddPanel(false); handleCloseChronicle(); setShowOracle(false); }}
             className={`btn text-xs ${showPublish ? 'btn-accent' : 'btn-secondary'}`}
           >
             📤 Publish
           </button>
 
           <button
-            onClick={() => { setShowAddPanel(true); setShowChronicle(false); setShowOracle(false); setFormType('did'); }}
+            onClick={() => { setShowAddPanel(true); handleCloseChronicle(); setShowOracle(false); setFormType('did'); }}
             className="btn btn-primary text-xs"
           >
             + Register
@@ -567,11 +611,11 @@ export default function RegistryApp() {
               vertexCounts={vertexCounts}
               selectedVertex={selectedVertex}
               hoveredVertices={hoveredChronicleVertices}
-              onSelectVertex={setSelectedVertex}
+              onSelectVertex={handleSelectVertex}
               items={items}
               highlightedConnections={highlightedConnections}
               selectedItemId={selectedItemId}
-              onSelectItem={setSelectedItemId}
+              onSelectItem={handleSelectItem}
             />
           )}
           {activeTab === 'dids' && (
@@ -579,7 +623,7 @@ export default function RegistryApp() {
               items={dids}
               title="Registered DIDs"
               onDelete={handleDeleteItem}
-              onSelectVertex={setSelectedVertex}
+              onSelectVertex={handleSelectVertex}
               setTab={setActiveTab}
             />
           )}
@@ -588,7 +632,7 @@ export default function RegistryApp() {
               items={vcs}
               title="Registered VCs"
               onDelete={handleDeleteItem}
-              onSelectVertex={setSelectedVertex}
+              onSelectVertex={handleSelectVertex}
               setTab={setActiveTab}
             />
           )}
@@ -597,7 +641,7 @@ export default function RegistryApp() {
               items={items}
               title="All Registry Items"
               onDelete={handleDeleteItem}
-              onSelectVertex={setSelectedVertex}
+              onSelectVertex={handleSelectVertex}
               setTab={setActiveTab}
             />
           )}
@@ -666,12 +710,14 @@ export default function RegistryApp() {
           <ChroniclePanel
             entries={chronicle}
             items={items}
-            onClose={() => setShowChronicle(false)}
+            onClose={handleCloseChronicle}
             onSelectVertex={(v) => {
-              setSelectedVertex(v);
-              setShowChronicle(false);
+              handleSelectVertex(v);
+              handleCloseChronicle();
             }}
             onHoverLine={setHoveredChronicleVertices}
+            onHoverItem={handleHoverItem}
+            onPopulateMissing={populateChronicleForExistingItems}
           />
         )}
 
@@ -680,7 +726,7 @@ export default function RegistryApp() {
           <OraclePanel
             onClose={() => setShowOracle(false)}
             onSelectVertex={(v) => {
-              setSelectedVertex(v);
+              handleSelectVertex(v);
               setShowOracle(false);
             }}
           />
@@ -692,11 +738,12 @@ export default function RegistryApp() {
             vertexId={selectedVertex}
             items={items.filter(i => i.vertexId === selectedVertex)}
             allItems={items}
-            onClose={() => setSelectedVertex(null)}
+            onClose={() => handleSelectVertex(null)}
             onAdd={() => { setShowAddPanel(true); setFormType('did'); }}
             onDelete={handleDeleteItem}
-            onSelectVertex={setSelectedVertex}
-            onSelectItem={setSelectedItemId}
+            onSelectVertex={handleSelectVertex}
+            onSelectItem={handleSelectItem}
+            onHoverItem={handleHoverItem}
             selectedItemId={selectedItemId}
           />
         )}
@@ -733,6 +780,7 @@ function VertexDetailSidebar({
   onDelete,
   onSelectVertex,
   onSelectItem,
+  onHoverItem,
   selectedItemId,
 }: {
   vertexId: number;
@@ -743,6 +791,7 @@ function VertexDetailSidebar({
   onDelete: (id: string) => void;
   onSelectVertex: (v: number) => void;
   onSelectItem: (id: string | null) => void;
+  onHoverItem?: (id: string | null) => void;
   selectedItemId: string | null;
 }) {
   const dims = getVertexDimensions(vertexId);
@@ -878,6 +927,8 @@ function VertexDetailSidebar({
                   <div
                     key={item.id}
                     onClick={() => onSelectItem(isItemSelected ? null : item.id)}
+                    onMouseEnter={() => onHoverItem?.(item.id)}
+                    onMouseLeave={() => onHoverItem?.(null)}
                     className={`rounded border p-2.5 cursor-pointer transition-all ${
                       isItemSelected
                         ? 'border-purple-500/60 bg-purple-500/10 shadow shadow-purple-500/20'
