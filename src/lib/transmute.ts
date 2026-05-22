@@ -55,6 +55,9 @@ export interface SpellwebEdge {
   source: string;
   target: string;
   type: string;
+  vcDid?: string;        // did:cid of the VC backing this edge (when issued via Keymaster)
+  issuerDid?: string;    // DID of the agent that signed the relationship claim
+  issuanceDate?: string; // ISO timestamp from the VC
 }
 
 export interface TransmutationResult {
@@ -276,23 +279,32 @@ export function transmuteToSpellweb(
     if (!sourceId) continue;
 
     if (item.type === 'vc') {
+      // Archon VC metadata — carried on every edge originating from this VC
+      const vcMeta: Pick<SpellwebEdge, 'vcDid' | 'issuerDid' | 'issuanceDate'> = {};
+      if (item.vcPayload) {
+        const vc = item.vcPayload as { issuanceDate?: string };
+        vcMeta.vcDid = blind(item.did, didBlind);
+        vcMeta.issuerDid = blind(item.issuerDid, didBlind);
+        vcMeta.issuanceDate = vc.issuanceDate;
+      }
+
       // VC → Schema: proves
       if (item.schemaDid) {
         const schemaItem = items.find(i => i.did === item.schemaDid);
         const targetId = schemaItem ? idMap.get(schemaItem.id) : undefined;
-        if (targetId) edges.push({ source: sourceId, target: targetId, type: 'proves' });
+        if (targetId) edges.push({ source: sourceId, target: targetId, type: 'proves', ...vcMeta });
       }
       // Issuer → VC: generates
       if (item.issuerDid) {
         const issuerItem = items.find(i => i.did === item.issuerDid);
         const issuerNodeId = issuerItem ? idMap.get(issuerItem.id) : undefined;
-        if (issuerNodeId) edges.push({ source: issuerNodeId, target: sourceId, type: 'generates' });
+        if (issuerNodeId) edges.push({ source: issuerNodeId, target: sourceId, type: 'generates', ...vcMeta });
       }
       // VC → Subject: relates_to
       if (item.subjectDid) {
         const subjectItem = items.find(i => i.did === item.subjectDid);
         const targetId = subjectItem ? idMap.get(subjectItem.id) : undefined;
-        if (targetId) edges.push({ source: sourceId, target: targetId, type: 'relates_to' });
+        if (targetId) edges.push({ source: sourceId, target: targetId, type: 'relates_to', ...vcMeta });
       }
     }
 

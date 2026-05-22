@@ -11,6 +11,7 @@ import { OraclePanel } from './OraclePanel';
 import { PublishPanel } from './PublishPanel';
 import { resolveDID, getController } from '../lib/didResolver';
 import { buildGraph, walkFrom } from '../lib/highlight';
+import { MageIdentityPanel } from './MageIdentityPanel';
 
 import {
   getVertexDimensions,
@@ -445,6 +446,8 @@ export default function RegistryApp() {
         </div>
 
         <div className="flex items-center gap-4">
+          <MageIdentityPanel />
+
           <div className="flex gap-1 bg-bg-card rounded-lg p-1">
             {([
               { key: 'lattice', label: 'Lattice', icon: '🔳' },

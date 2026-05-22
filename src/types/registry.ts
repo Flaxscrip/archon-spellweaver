@@ -53,6 +53,10 @@ export interface RegistryItem {
   role?: 'sovereign' | 'transmuted' | 'schema' | 'issuer' | 'verifier' | 'chronicle';
   // For capabilities: parent DID this capability belongs to
   parentDid?: string;   // Anchor DID this capability decomposes from
+  // Archon identity layer
+  vcPayload?: object;         // W3C VC JSON for type: 'vc' items issued via Keymaster
+  archonVerified?: boolean;   // DID/VC confirmed on Gatekeeper
+  archonAnchor?: string;      // Registry where anchored: 'hyperswarm' | 'BTC' | 'local'
   // Metadata
   tags?: string[];
 }

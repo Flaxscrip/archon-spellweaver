@@ -7,6 +7,7 @@ import {
   type SpellwebNode,
   type SpellwebEdge,
 } from '../lib/transmute';
+import { useKeymaster } from '../contexts/KeymasterContext';
 
 interface PublishPanelProps {
   items: RegistryItem[];
@@ -17,6 +18,9 @@ interface PublishPanelProps {
 export function PublishPanel({ items, chronicle, onClose }: PublishPanelProps) {
   const [didBlind, setDidBlind] = useState(true);
   const [showPreview, setShowPreview] = useState<'nodes' | 'edges' | 'module'>('nodes');
+  const [vaultStatus, setVaultStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [vaultItemName, setVaultItemName] = useState<string | null>(null);
+  const { walletState, saveToWeaverVault } = useKeymaster();
 
   const { nodes, edges, tsModule } = useMemo(() => {
     const ts = new Date().toISOString();
@@ -39,6 +43,25 @@ export function PublishPanel({ items, chronicle, onClose }: PublishPanelProps) {
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(tsModule);
+  };
+
+  const handleSaveToVault = async () => {
+    setVaultStatus('saving');
+    const now = new Date();
+    const d = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const t = now.toISOString().slice(11, 19).replace(/:/g, '');
+    const name = `weaver-${d}-${t}.json`;
+    const snapshot = JSON.stringify({ exportedAt: now.toISOString(), didBlind, nodes, edges }, null, 2);
+    try {
+      await saveToWeaverVault(name, snapshot);
+      setVaultItemName(name);
+      setVaultStatus('saved');
+      setTimeout(() => setVaultStatus('idle'), 4000);
+    } catch (err) {
+      console.error('[weaver-vault] save failed:', err);
+      setVaultStatus('error');
+      setTimeout(() => setVaultStatus('idle'), 4000);
+    }
   };
 
   const nodeCounts = {
@@ -164,7 +187,26 @@ export function PublishPanel({ items, chronicle, onClose }: PublishPanelProps) {
                 <button onClick={handleCopy} className="btn btn-secondary text-xs flex-1">
                   📋 Copy to Clipboard
                 </button>
+                <button
+                  onClick={handleSaveToVault}
+                  disabled={walletState !== 'unlocked' || vaultStatus === 'saving'}
+                  title={walletState !== 'unlocked' ? 'Connect wallet to save to vault' : 'Save snapshot to Weaver Vault'}
+                  className="btn text-xs flex-1 transition-colors"
+                  style={{
+                    background: vaultStatus === 'saved' ? 'var(--success)' : vaultStatus === 'error' ? 'var(--danger)' : 'var(--accent)',
+                    color: '#000',
+                    opacity: walletState !== 'unlocked' ? 0.4 : 1,
+                    cursor: walletState !== 'unlocked' ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {vaultStatus === 'saving' ? '⏳ Saving…' : vaultStatus === 'saved' ? '✓ Saved' : vaultStatus === 'error' ? '✗ Error' : '🔒 Save to Vault'}
+                </button>
               </div>
+              {vaultStatus === 'saved' && vaultItemName && (
+                <div className="px-4 pb-3 text-[10px] text-text-dim font-mono">
+                  Saved as <span className="text-accent">{vaultItemName}</span> in Weaver Vault
+                </div>
+              )}
             </div>
           )}
         </div>
